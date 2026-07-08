@@ -12,9 +12,9 @@ In the financial industry, minimizing the Mean Time to Respond (MTTR) is critica
 
 ## 📖 Scenarios Covered 
 
-* **Phishing**
 * **Brute-Force** 
-* **Insider Threat**
+* **Phishing**
+* **Network Reconnaissance**
 * **Web App Attack**
 
 ## 🛠️ Prerequisites & Tooling
