@@ -58,18 +58,31 @@ The L3 analyst acts as the Incident Commander. Their objective is to immediately
 * **Root Cause Analysis (RCA) & Closure:** Draft the final RCA detailing exactly how the password was compromised, how MFA was bypassed, what systems were accessed, and the mandatory remediation steps (e.g., enforcing stronger MFA policies) before securely closing the incident.
 
 ## Indicators of Compromise (IoCs)
-Proper documentation of IoCs is critical for immediate containment and identifying if the threat actor is targeting other clients or systems. Extract the following artifacts from the SIEM (e.g., QRadar) and Identity Provider logs, and document them thoroughly in the incident ticket:
+Extract these artifacts from the SIEM and document them in the incident ticket for immediate containment and future threat hunting:
+* **Attacker Source IPs:** The specific external addresses or internal host IPs (e.g., 192.168.41.222) generating the authentication traffic.
+* **Compromised Accounts:** The exact usernames (e.g., Hp ProOne) or Active Directory User Principal Names (UPNs) that logged a successful authentication after the brute-force sequence.
+* **Suspicious User-Agents:** Automated scripting tools (like cURL or Python requests), custom scripts, or outdated browsers identified in the HTTP/HTTPS authentication headers.
+* **Malicious Inbox Rules:** Any unauthorized email forwarding rules created immediately after a successful login (often used to hide security alerts or steal invoices).
+* **Rogue MFA Devices:** Any new, unrecognized authenticator apps or phone numbers registered to the account post-compromise.
 
-### Network & Infrastructure Artifacts
-* **Attacker Source IPs:** The specific IP addresses generating the failed/successful authentication attempts.
-* **Autonomous System Numbers (ASNs):** Identify if the attack is originating from a specific hosting provider (e.g., DigitalOcean, AWS), a commercial VPN service, or an anonymization network (e.g., Tor exit nodes).
-* **Suspicious User-Agent Strings:** Note the User-Agent used during the authentication request. Attackers often use outdated browser versions, automated scripting tools (e.g., python-requests, curl), or custom user-agents that do not match the bank’s standard operating environment.
 
-### Identity & Authentication Artifacts:
-* **Compromised Accounts:** The exact User Principal Names (UPNs) or Active Directory usernames that experienced a successful logon (Event ID 4624) after a brute-force sequence.
-* **Targeted Account Lists (For Password Sprays):** If a spray attack occurred, export the list of all targeted usernames. Compare this list against public data breaches to determine if the attacker is using a specific compromised credential dump.
-* **Rogue Device IDs / Authenticator Registrations:** If the attacker successfully bypassed authentication, check Azure AD / Entra ID logs to see if a new, unauthorized MFA device or mobile phone was registered to the account.
+## Containment
+Execute these steps immediately to cut off the attacker's access and stop the attack:
+* **Disable the Account:** Immediately suspend the targeted user in Active Directory or the Cloud Identity Provider.
+* **Revoke Active Sessions:** Force a global logout (e.g., via Azure AD) to kill the attacker's current connection. A password reset alone does not stop an active session.
+* **Block the IP:** Add the malicious Source IP to the emergency blocklist on all perimeter firewalls, VPN gateways, and WAFs.
+* **Isolate Internal Hosts:** If the brute-force traffic is coming from an internal employee machine, isolate it from the network immediately using your EDR console.
 
-### Post-Compromise Artifacts (If Account Takeover Occurred):
-* **Malicious Inbox Rules:** Specific names of any mailbox rules created immediately following the login (e.g., forwarding emails containing words like "invoice," "password," or "security" to the RSS Feeds folder or an external address).
-* **Session Tokens/IDs:** The specific session IDs associated with the malicious login, which will be required for global session revocation.
+## Remediation
+Once the threat is contained, execute these steps to permanently eradicate the attacker's footprint and safely restore business operations:
+* **Force a Password Reset:** Require the affected user to set a new, complex password that complies with the organization's security policy. Do not allow them to reuse recent passwords.
+* **Clear MFA Registrations:** Delete the user's existing Multi-Factor Authentication (MFA) devices in the Identity Provider and force them to re-register. This ensures the attacker did not add their own device as a backdoor.
+* **Post-Compromise Cleanup:** If the account was breached, thoroughly inspect their environment. Delete any malicious inbox forwarding rules, and verify no unauthorized secondary accounts or API keys were created.
+* **Restore Access:** Once all security checks are passed and the user is verified, re-enable the account and lift the network isolation on their endpoint (if applicable).
+
+## Detection Improvement
+After the incident is closed, update the SIEM and security controls to catch similar attacks earlier and reduce false positives:
+* **Alert on Success-After-Failure:** Do not just alert on failed attempts. Create a high-priority SIEM correlation rule that triggers when a successful login (4624) happens immediately after a string of failed logins (4625) from the exact same IP address.
+* **Enable Impossible Travel Alerts:** Tune the SIEM or Identity Provider to alert when a user logs in from two geographically distant locations within an impossible timeframe.
+* **Disable Legacy Protocols:** Ensure legacy authentication protocols (like IMAP or POP3) are blocked across the tenant, as attackers frequently use them to bypass MFA requirements.
+* **Tune Lockout Policies:** Review Active Directory policies to ensure accounts automatically lock out after a reasonable number of failed attempts (e.g., 5 to 10), stopping the brute-force at the system level.
