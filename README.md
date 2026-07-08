@@ -1,4 +1,4 @@
-# 🛡️ MSSP Incident Response Playbooks for Financial Infrastructure
+# 🛡️ Incident Response Playbooks for Financial Infrastructure
 
 ## 📌 Project Overview
 This repository contains a collection of highly structured Incident Response (IR) playbooks designed specifically for a Managed Security Service Provider (MSSP) defending a banking/financial sector client. 
