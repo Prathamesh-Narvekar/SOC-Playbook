@@ -20,6 +20,7 @@ In the financial industry, minimizing the Mean Time to Respond (MTTR) is critica
 * **Lateral Movement**
 * **Distributed Denial of Service (DDoS)**
 * **Ransomware**
+* **Privilege Escalation**
 
 ## 🛠️ Prerequisites & Tooling
 To successfully execute these playbooks, analysts should have access to:
