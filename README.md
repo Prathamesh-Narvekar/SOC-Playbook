@@ -16,6 +16,7 @@ In the financial industry, minimizing the Mean Time to Respond (MTTR) is critica
 * **Phishing**
 * **Network Reconnaissance**
 * **Web App Attack**
+* **Insider Threat**
 
 ## 🛠️ Prerequisites & Tooling
 To successfully execute these playbooks, analysts should have access to:
